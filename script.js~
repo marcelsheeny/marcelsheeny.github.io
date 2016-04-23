@@ -54,7 +54,7 @@ Rendering.prototype =
 			{
 				if (this.game.map.get(i,j) == 2)
 				{
-					this.drawCell(i,j,"#FF0000");
+					this.drawCell(i,j,"#FFFF00");
 				}
 				else if (this.game.map.get(i,j) == 1)
 				{
