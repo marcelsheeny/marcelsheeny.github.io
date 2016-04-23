@@ -1,6 +1,6 @@
-var SPEED = 100;
-var WIDTH = 30;
-var HEIGTH = 30;
+var SPEED = 200;
+var WIDTH = 10;
+var HEIGTH = 10;
 
 
 //Drawing Class
@@ -8,6 +8,7 @@ function Rendering ()
 {
 	this.canvas = document.getElementById("myCanvas");
 	this.ctx = this.canvas.getContext("2d");
+	this.score = new Score();
 	this.width = this.ctx.canvas.width;
 	this.height = this.ctx.canvas.height;
 	this.game = new Game(WIDTH,HEIGTH);
@@ -15,7 +16,7 @@ function Rendering ()
 	this.sizeCellY = this.height/(this.game.height);
 	this.paused = false;
 	this.initSpeed = SPEED;
-	this.ctx.font = "30px Arial";
+	this.ctx.font = this.score.font;
 }
 
 function doKeyDown(evt) {
@@ -38,6 +39,15 @@ function doKeyDown(evt) {
 		break; 
 	}
 	rendering.game.snake.move(dirr);
+}
+
+function Score ()
+{
+	this.x = 10;
+	this.y = 30;
+	this.color = "#000000";
+	this.font = "30px Arial";
+	this.string = "Score: "
 }
 
 Rendering.prototype = 
@@ -67,10 +77,14 @@ Rendering.prototype =
 			}
 		}
 		this.game.map.printMatrix();
-		this.ctx.fillStyle = "#000000";
-		this.ctx.fillText("Points: "+this.game.points,10,30);
+		this.showScore();
 		console.log();
 		
+	},
+	showScore:function()
+	{
+		this.ctx.fillStyle = this.score.color;
+		this.ctx.fillText(this.score.string+this.game.score,this.score.x,this.score.y);
 	},
 	clear:function()
 	{
@@ -117,8 +131,8 @@ Game.prototype =
 		this.map = new Matrix(this.width,this.height);
 		this.snake = new Snake(this.width,this.height);
 		this.map.set(this.snake.childs[0].x,this.snake.childs[0].y,1);
-		this.gold = new Gold(this.width,this.height);
-		this.points = this.snake.childs.length;
+		this.gold = new Gold(this.width,this.height,this);
+		this.score = this.snake.childs.length;
 	},
 	update:function()
 	{
@@ -130,7 +144,7 @@ Game.prototype =
 		}
 		this.map.set(this.gold.x,this.gold.y,2);
 		this.ateGold();
-		this.points = this.snake.childs.length;
+		this.score = this.snake.childs.length;
 	},
 	ateGold:function()
 	{
@@ -173,21 +187,29 @@ Game.prototype =
 		if (this.snake.childs[0].x < 0 || this.snake.childs[0].x >= this.width ||
 		    this.snake.childs[0].y < 0 || this.snake.childs[0].y >= this.height)
 		{
+			this.displayScore();
 			this.reset();
+			return;
 		}
 		for (var i = 1; i < this.snake.childs.length; i++)
 		{
 			if (this.snake.childs[0].x == this.snake.childs[i].x &&
-				this.snake.childs[0].y == this.snake.childs[i].y)
+			    this.snake.childs[0].y == this.snake.childs[i].y)
 			{
+				this.displayScore();
 				this.reset();
+				return;
 			}
 		}
 	},
 	reset:function()
 	{
 		this.init();
-	}
+	},
+	displayScore:function()
+    	{
+        	alert("Score: "+this.score);
+    	}
 }
 
 //Matrix Class
@@ -283,23 +305,30 @@ Snake.prototype = {
 	}
 }
 
-function Gold (width,height)
+function Gold (width,height,game)
 {
-	this.w = width;
-	this.h = height
-	this.x;
-	this.y;
-	this.newLocation();
+    this.w = width;
+    this.h = height
+    this.game = game;
+    this.x;
+    this.y;
+    this.newLocation();
 }
-
+ 
 Gold.prototype = 
 {
-	constructor:Gold,
-	newLocation:function()
-	{
-		this.x = Math.floor((Math.random() * this.w));
-		this.y = Math.floor((Math.random() * this.h));
-	}
+    constructor:Gold,
+    newLocation:function()
+    {
+        do
+        {
+                var x = Math.floor((Math.random() * this.w));
+                var y = Math.floor((Math.random() * this.h));   
+        }
+        while(this.game.map.get(x,y) != 0);
+        this.x = x;
+        this.y = y;
+    }
 }
 
 var rendering;
